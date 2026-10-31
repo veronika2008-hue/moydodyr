@@ -1,0 +1,5 @@
+aiogram>=3.4,<4
+tapo
+aiohttp
+# Raspberry Pi only (Variant B: ADS1115 over I2C)
+smbus2
