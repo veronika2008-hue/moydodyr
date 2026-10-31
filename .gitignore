@@ -1,0 +1,13 @@
+# Secrets: bot token, Tapo account password
+config.py
+
+# Runtime state written by the bot
+*_cycle_state.json
+
+# New calibration logs land in the project root; curated ones live in data/
+/calibration_*.csv
+/sct_calibration_*.csv
+
+__pycache__/
+*.pyc
+venv/
