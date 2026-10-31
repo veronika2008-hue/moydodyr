@@ -8,10 +8,13 @@ walk down to check.
 The machines themselves have no network connection. The system works out
 their state from how much electricity they draw.
 
+**In use:** 68 students in a UWC Dilijan dorm use the bot; it currently
+tracks 4 of the 6 machines in the laundry room.
+
 ## Two hardware approaches
 
 **Variant A — smart plugs (working).** TP-Link Tapo P110 plugs between the
-wall and two of the machines report power draw over Wi-Fi. `tapo_source.py`
+wall and the machines report power draw over Wi-Fi. `tapo_source.py`
 reads them locally (no cloud round-trip per poll) and classifies the stage
 from power: idle ~3–4 W, heating ~1900 W, spinning ~170–210 W, washing in
 short motor pulses under ~90 W. Thresholds were calibrated from a real logged
