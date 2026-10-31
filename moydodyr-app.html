@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moydodyr</title>
+<style>
+  :root{
+    --bg: #1B1F1D;
+    --panel: #242927;
+    --panel-line: #3A413D;
+    --copper: #C77B4B;
+    --teal: #4FA593;
+    --text: #EDEAE2;
+    --text-muted: #9BA39C;
+    --amber: #D9A441;
+    --free: #4FA593;
+    --washing: #5B9BD9;
+    --rinsing: #5B9BD9;
+    --spinning: #D9A441;
+    --heating: #D9534F;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans','Segoe UI',sans-serif;
+    padding: 20px 16px 40px;
+    min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  header{
+    margin-bottom:20px;
+  }
+  header h1{
+    font-family:'Barlow Condensed','Arial Narrow',sans-serif;
+    font-weight:700;
+    font-size:30px;
+    margin:0 0 2px;
+    letter-spacing:0.3px;
+  }
+  header p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:13px;
+  }
+
+  .legend{
+    display:flex;
+    gap:14px;
+    margin: 14px 0 20px;
+    font-size:11px;
+    color:var(--text-muted);
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .legend span{display:flex; align-items:center; gap:5px;}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  .grid{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding-bottom:6px;
+    margin:0 -16px;
+    padding-left:16px;
+    padding-right:16px;
+  }
+  .tile{
+    flex:0 0 108px;
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-left:4px solid var(--panel-line);
+    padding:14px 12px;
+    cursor:pointer;
+    transition:border-color 0.15s ease, transform 0.1s ease;
+  }
+  .tile:active{transform:scale(0.98);}
+  .tile.free{border-left-color:var(--free);}
+  .tile.washing, .tile.rinsing{border-left-color:var(--washing);}
+  .tile.spinning{border-left-color:var(--spinning);}
+  .tile.heating{border-left-color:var(--heating);}
+  .tile.selected{border-color:var(--copper);}
+
+  .tile-id{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:var(--text-muted);
+    margin-bottom:6px;
+  }
+  .tile-stage{
+    font-size:15px;
+    font-weight:600;
+    margin-bottom:4px;
+    text-transform:capitalize;
+  }
+  .tile-time{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--text-muted);
+  }
+
+  .detail{
+    margin-top:22px;
+    background:var(--panel);
+    border:1px solid var(--copper);
+    padding:20px;
+    display:none;
+  }
+  .detail.show{display:block;}
+  .detail-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:14px;
+  }
+  .detail-header h2{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:24px;
+    margin:0;
+  }
+  .detail-close{
+    background:none;
+    border:none;
+    color:var(--text-muted);
+    font-size:20px;
+    cursor:pointer;
+    padding:0 4px;
+  }
+  .detail-stage-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .detail-dot{width:12px;height:12px;border-radius:50%;}
+  .detail-stage-name{
+    font-size:18px;
+    font-weight:600;
+    text-transform:capitalize;
+  }
+  .detail-timer{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:36px;
+    font-weight:700;
+    color:var(--amber);
+    letter-spacing:1px;
+    margin-bottom:4px;
+  }
+  .detail-timer-label{
+    font-size:11px;
+    color:var(--text-muted);
+    font-family:'IBM Plex Mono',monospace;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    margin-bottom:18px;
+  }
+  .notify-btn{
+    width:100%;
+    background:var(--copper);
+    border:none;
+    color:#1B1F1D;
+    font-weight:700;
+    padding:12px;
+    cursor:pointer;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    letter-spacing:0.3px;
+  }
+  .notify-btn:disabled{
+    background:var(--panel-line);
+    color:var(--text-muted);
+    cursor:default;
+  }
+  .notify-hint{
+    text-align:center;
+    font-size:11px;
+    color:var(--text-muted);
+    margin-top:8px;
+  }
+
+  .footer-note{
+    text-align:center;
+    color:var(--text-muted);
+    font-size:11px;
+    margin-top:28px;
+    line-height:1.6;
+    font-family:'IBM Plex Mono',monospace;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>MOYDODYR</h1>
+    <p>Laundry room — real-time washing machine status</p>
+  </header>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--free)"></span>free</span>
+    <span><span class="dot" style="background:var(--washing)"></span>washing / rinsing</span>
+    <span><span class="dot" style="background:var(--heating)"></span>heating</span>
+    <span><span class="dot" style="background:var(--spinning)"></span>spinning</span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="detail" id="detail">
+    <div class="detail-header">
+      <h2 id="detail-id">#1</h2>
+      <button class="detail-close" id="detail-close">✕</button>
+    </div>
+    <div class="detail-stage-row">
+      <span class="detail-dot" id="detail-dot"></span>
+      <span class="detail-stage-name" id="detail-stage-name">free</span>
+    </div>
+    <div class="detail-timer" id="detail-timer">00:00</div>
+    <div class="detail-timer-label" id="detail-timer-label">time left</div>
+    <button class="notify-btn" id="notify-btn">Notify me when free</button>
+    <div class="notify-hint" id="notify-hint"></div>
+  </div>
+
+  <div class="footer-note" id="footer-note">
+    Loading live status from the bot…
+  </div>
+</div>
+
+<script>
+const MACHINE_IDS = Array.from({length:6}, (_,i)=>'#'+(i+1));
+// Served by bot.py -> same-origin API; opened as a local file -> the bot on this machine.
+const API_URL = location.protocol === 'file:' ? 'http://localhost:8080/api/status' : '/api/status';
+const POLL_INTERVAL_MS = 4000;
+
+// Frontend shows "#1", the bot/config use "№1" as the machine id.
+function toBackendId(id){ return id.replace('#', '№'); }
+
+const STAGE_COLOR_VAR = {
+  free:'--free', washing:'--washing', rinsing:'--washing',
+  spinning:'--spinning', heating:'--heating'
+};
+
+let state = {};
+MACHINE_IDS.forEach(id=>{ state[id] = { stage: 'free', remaining: null }; });
+let lastFetchOk = false;
+
+let selectedId = null;
+let notifySubs = new Set();
+
+const grid = document.getElementById('grid');
+const detail = document.getElementById('detail');
+const detailId = document.getElementById('detail-id');
+const detailDot = document.getElementById('detail-dot');
+const detailStageName = document.getElementById('detail-stage-name');
+const detailTimer = document.getElementById('detail-timer');
+const detailTimerLabel = document.getElementById('detail-timer-label');
+const notifyBtn = document.getElementById('notify-btn');
+const notifyHint = document.getElementById('notify-hint');
+document.getElementById('detail-close').onclick = ()=>{
+  selectedId = null;
+  detail.classList.remove('show');
+  renderGrid();
+};
+
+function fmtTime(sec){
+  if(sec <= 0) return '0 min';
+  return '~' + Math.max(1, Math.round(sec / 60)) + ' min';
+}
+
+function renderGrid(){
+  grid.innerHTML = '';
+  MACHINE_IDS.forEach(id=>{
+    const info = state[id];
+    const tile = document.createElement('div');
+    tile.className = 'tile ' + info.stage + (id===selectedId ? ' selected' : '');
+    tile.innerHTML = `
+      <div class="tile-id">${id}</div>
+      <div class="tile-stage">${info.stage}</div>
+      <div class="tile-time">${info.stage==='free' ? '' : fmtTime(info.remaining)+' left'}</div>
+    `;
+    tile.onclick = ()=>selectMachine(id);
+    grid.appendChild(tile);
+  });
+}
+
+function selectMachine(id){
+  selectedId = id;
+  renderGrid();
+  showDetail(id);
+}
+
+function showDetail(id){
+  const info = state[id];
+  detail.classList.add('show');
+  detailId.textContent = id;
+  detailDot.style.background = `var(${STAGE_COLOR_VAR[info.stage]})`;
+  detailStageName.textContent = info.stage;
+  if(info.stage === 'free'){
+    detailTimer.textContent = '';
+    detailTimerLabel.textContent = '';
+  } else {
+    detailTimer.textContent = fmtTime(info.remaining);
+    detailTimerLabel.textContent = 'time left';
+  }
+
+  if(info.stage === 'free'){
+    notifyBtn.disabled = true;
+    notifyBtn.textContent = 'Already free';
+    notifyHint.textContent = '';
+  } else {
+    notifyBtn.disabled = false;
+    const subscribed = notifySubs.has(id);
+    notifyBtn.textContent = subscribed ? "You'll be notified ✓" : 'Notify me when free';
+    const blocked = 'Notification' in window && Notification.permission === 'denied';
+    notifyHint.textContent = blocked
+      ? "Browser notifications are blocked — you'll get an in-page alert instead (only works if this tab stays open)."
+      : '';
+  }
+}
+
+function notifyMachineFree(id){
+  const title = '🎉 Machine ' + id + ' is free now!';
+  if('Notification' in window && Notification.permission === 'granted'){
+    new Notification(title);
+  } else {
+    // No permission (denied, or not asked yet) — fall back to an in-page alert.
+    alert(title);
+  }
+}
+
+notifyBtn.onclick = async ()=>{
+  if(!selectedId) return;
+  if('Notification' in window && Notification.permission === 'default'){
+    await Notification.requestPermission();
+  }
+  notifySubs.add(selectedId);
+  showDetail(selectedId);
+};
+
+const footerNote = document.getElementById('footer-note');
+
+async function fetchStatus(){
+  try {
+    const res = await fetch(API_URL);
+    if(!res.ok) throw new Error('bad response');
+    const data = await res.json();
+
+    MACHINE_IDS.forEach(id=>{
+      const backendInfo = data[toBackendId(id)];
+      if(!backendInfo) return;
+      const wasFree = state[id].stage === 'free';
+      state[id] = { stage: backendInfo.stage, remaining: backendInfo.remaining_seconds };
+      if(!wasFree && backendInfo.stage === 'free' && notifySubs.has(id)){
+        notifyMachineFree(id);
+        notifySubs.delete(id);
+      }
+    });
+
+    lastFetchOk = true;
+    footerNote.innerHTML = 'Live data from the bot.<br>Updates every few seconds.';
+  } catch(e) {
+    lastFetchOk = false;
+    footerNote.innerHTML = "Can't reach the bot's status server.<br>Is bot.py running?";
+  }
+  renderGrid();
+  if(selectedId) showDetail(selectedId);
+}
+
+renderGrid();
+fetchStatus();
+setInterval(fetchStatus, POLL_INTERVAL_MS);
+</script>
+</body>
+</html>
